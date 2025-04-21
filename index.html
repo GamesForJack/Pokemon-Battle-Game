@@ -472,12 +472,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="battleBoard"></div>
             <div id="moveOptions"></div>
             <div id="winnerOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(32,32,32,0.88);align-items:center;justify-content:center;flex-direction:column;cursor:pointer;">
+  <button id="newGameBtn" onclick="location.reload()" style="position:absolute;top:18px;left:18px;font-size:0.98em;padding:6px 14px;background:#2196F3;color:white;border:none;border-radius:6px;cursor:pointer;z-index:10001;display:none;">New Game</button>
   <div id="winnerOverlayInner" style="text-align:center;">
     <span id="winnerMessageText">Winner!</span>
     <hr style="margin:32px 0 18px 0; border: none; border-top: 1.5px solid #bbb; width: 60%;">
-
   </div>
 </div>
+<script>
+(function() {
+  function toggleNewGameBtn() {
+    var overlay = document.getElementById('winnerOverlay');
+    var btn = document.getElementById('newGameBtn');
+    if (!overlay || !btn) return;
+    if (getComputedStyle(overlay).display !== 'none' && overlay.offsetParent !== null) {
+      btn.style.display = 'block';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+  var observer = new MutationObserver(toggleNewGameBtn);
+  observer.observe(document.getElementById('winnerOverlay'), { attributes: true, attributeFilter: ['style','class'] });
+  document.addEventListener('DOMContentLoaded', toggleNewGameBtn);
+})();
+</script>
 <script>
 // Allow clicking anywhere on winner overlay to restart
 (function(){
