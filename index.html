@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Battle Game</title>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: Arial, sans-serif;
+            background: #fff;
+            color: #111;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .setup-section {
+            text-align: center;
+            padding: 32px 8px;
+            background: #f6f6f6;
+            color: #111;
+            min-height: 60vh;
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: hidden;
+        }
+        .team-size-options {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+.team-size-options button {
+    padding: 6px 14px;
+    font-size: 1em;
+    border-radius: 4px;
+    min-width: 80px;
+}
+
+.vs-sign {
+    font-size: 3em;
+    font-weight: bold;
+    color: #d32f2f;
+    text-shadow: 2px 2px 10px #fff, 0 0 16px #d32f2f;
+    letter-spacing: 0.12em;
+    margin: 0 16px;
+    user-select: none;
+    animation: vs-pulse 1.3s infinite alternate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+@keyframes vs-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.12); opacity: 0.85; }
+}
+
+        .team-size-options button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .team-size-options button:hover {
+            background: #45a049;
+        }
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 24px 16px;
+            box-sizing: border-box;
+            background: #fff;
+            color: #111;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        }
+        .game-phase {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .draft-section {
+            margin-top: 20px;
+        }
+        .available-pokemon {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .teams-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .player-section {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .draft-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .current-player-info {
+            text-align: center;
+            padding: 8px;
+            background-color: #1565C0;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .current-player-info h3 {
+            margin: 0;
+            font-size: 1.2em;
+            display: inline-block;
+        }
+
+        .current-player-info p {
+            margin: 0 0 0 10px;
+            font-size: 1em;
+            display: inline-block;
+        }
+
+        .available-pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .pokemon-card {
+            border: 1px solid #2196F3;
+            padding: 15px;
+            margin: 0;
+            border-radius: 8px;
+            background-color: #fff;
+            color: #111;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pokemon-card strong {
+            font-size: 1.2em;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .pokemon-card.active {
+            border: 2px solid #4CAF50;
+            background-color: #E8F5E9;
+            color: #2E7D32;
+            box-shadow: 0 4px 8px rgba(76,175,80,0.3);
+        }
+
+        .pokemon-card.fainted {
+            opacity: 0.7;
+            background-color: #FFEBEE;
+            border-color: #EF5350;
+            color: #C62828;
+        }
+
+        .move-button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .move-button:hover:not(:disabled) {
+            background-color: #1976D2;
+            transform: translateY(-1px);
+        }
+
+        .move-button:disabled {
+            background-color: #B0BEC5;
+            cursor: not-allowed;
+        }
+
+        .moves-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+       }
+        .pokemon-card:hover {
+            background: #555;
+        }
+        .pokemon-card.available {
+            border-color: #4CAF50;
+        }
+        .pokemon-card.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .moves-list {
+            margin-top: 8px;
+        }
+        .move-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            margin: 2px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .move-type {
+            background: #666;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .current-turn {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .moves-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .move-button {
+            background: #4CAF50;
+            border: none;
+            padding: 10px;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .move-button:hover {
+            background: #45a049;
+        }
+        .move-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 20px;
+            background: #666;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .hp-bar-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        .battle-log {
+            grid-column: 1 / -1;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            height: 150px;
+            overflow-y: auto;
+        }
+        .moves-list {
+            margin-top: 8px;
+        }
+        .move-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            margin: 2px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .move-type {
+            background: #666;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        .move-value {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    @keyframes bipIn {
+      0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+      60% { transform: scale(1.08) translateY(-8px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    #winnerOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 10000;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      pointer-events: all;
+      overflow: hidden;
+    }
+    #winnerOverlay.active {
+      display: flex !important;
+    }
+    #winnerOverlayInner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fff 85%, #ffe066 100%);
+      padding: 72px 56px 64px 56px;
+      border-radius: 36px;
+      box-shadow: 0 16px 64px #000b, 0 0 0 12px #ffe066cc;
+      text-align: center;
+      font-size: clamp(3.5rem, 8vw, 6rem);
+      font-weight: 900;
+      color: #23c923;
+      border: 8px solid gold;
+      animation: bipIn 0.4s cubic-bezier(.68,-0.55,.27,1.55);
+      min-width: 420px;
+      max-width: 95vw;
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 16px #ffe066, 0 4px 32px #0004;
+    }
+    #winnerMessageText {
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+    }
+    </style>
+
+    <script src="sounds/soundmap.js"></script>
+</head>
+<body style="background:#f8f8f8;font-family:'Segoe UI',sans-serif;">
+
+    <button id="backBtn" onclick="goBackPhase();" style="display:none;position:fixed;top:18px;left:18px;z-index:10000;padding:2px 10px;font-size:0.9em;background:#f8f8f8;color:#333;border:1px solid #bbb;border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.06);cursor:pointer;opacity:0.85;transition:background 0.2s;">&#8592; Back</button>
+<script>
+let currentPhase = 'playerSelection'; // Possible: playerSelection, teamSize, draft, activeSelection, battle
+function showSection(phase) {
+  document.getElementById('playerSelectionSection').style.display = (phase==='playerSelection') ? 'flex' : 'none';
+  document.getElementById('teamSizeSection').style.display = (phase==='teamSize') ? 'flex' : 'none';
+  document.getElementById('draftSection').style.display = (phase==='draft') ? 'block' : 'none';
+  document.getElementById('activeSelectionSection').style.display = (phase==='activeSelection') ? 'block' : 'none';
+  document.getElementById('battleSection').style.display = (phase==='battle') ? 'block' : 'none';
+  currentPhase = phase;
+  updateBackBtnVisibility();
+}
+function goBackPhase() {
+  if (currentPhase === 'battle') showSection('activeSelection');
+  else if (currentPhase === 'activeSelection') showSection('draft');
+  else if (currentPhase === 'draft') showSection('teamSize');
+  else if (currentPhase === 'teamSize') showSection('playerSelection');
+}
+</script>
+<script>
+function updateBackBtnVisibility() {
+  const btn = document.getElementById('backBtn');
+  const playerSel = document.getElementById('playerSelectionSection');
+  if (playerSel && playerSel.style.display !== 'none') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    if (currentPhase === 'battle') {
+      btn.innerHTML = 'New Game';
+      btn.onclick = function() { showSection('playerSelection'); location.reload(); };
+    } else {
+      btn.innerHTML = '\u2190 Back';
+      btn.onclick = goBackPhase;
+    }
+  }
+}
+// Call after any section change
+window.updateBackBtnVisibility = updateBackBtnVisibility;
+// Patch section show/hide points
+const origSelectPlayers = window.selectPlayers;
+if (origSelectPlayers) {
+  window.selectPlayers = function() { origSelectPlayers.apply(this, arguments); updateBackBtnVisibility(); };
+}
+document.addEventListener('DOMContentLoaded', function() {
+  updateBackBtnVisibility();
+  // Also update after a short delay in case of async section show/hide
+  setTimeout(updateBackBtnVisibility, 300);
+});
+</script>
+    
+    <div class="container" id="mainContainer">
+        
+        <!-- Player Selection Screen -->
+        <div class="setup-section" id="playerSelectionSection" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;" data-component-name="<div />">
+            <img src="start-image.webp" alt="Pokémon Start" style="max-width:100vw;max-height:76.7vh;height:67.7vh;width:auto;border-radius:21.66px;box-shadow:0 8px 32px rgba(0,0,0,0.2);margin-bottom:12px;margin-top:2px;" data-component-name="<img />">
+            <h2 style="font-size:1.5em;margin-bottom:10px;">Select Number of Players</h2>
+            <div class="team-size-options">
+                
+                <button onclick="selectPlayers(2)">2 Players</button>
+                <button onclick="selectPlayers(3)">3 Players</button>
+                <button onclick="selectPlayers(4)">4 Players</button>
+            </div>
+            
+        </div>
+        
+        <!-- Team Size Selection Screen -->
+        <div class="setup-section" id="teamSizeSection" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;width:100%;text-align:center;">
+            <img src="start-image.webp" alt="Pokémon Start" style="max-width:100vw;max-height:76.5vh;height:67.5vh;width:auto;border-radius:21.6px;box-shadow:0 8px 32px rgba(0,0,0,0.2);margin-bottom:12px;margin-top:2px;">
+            <h2>Select Number of Pokémon Per Team</h2>
+            <div class="team-size-options">
+                <button onclick="selectTeamSize(1)">1</button>
+                <button onclick="selectTeamSize(2)">2</button>
+                <button onclick="selectTeamSize(3)">3</button>
+                <button onclick="selectTeamSize(4)">4</button>
+                <button onclick="selectTeamSize(5)">5</button>
+                <button onclick="selectTeamSize(6)">6</button>
+            </div>
+        </div>
+
+        <!-- Draft Section -->
+        <div class="setup-section" id="draftSection" style="display:none; overflow-y:auto; max-height:80vh;">
+            <h2>Select your pokomon</h2>
+            <div id="draftOrderDisplay" style="margin-bottom:10px;"></div>
+            <div id="draftTurnDisplay" style="margin-bottom:10px; font-weight:bold;"></div>
+            <div id="teamsDisplay" style="margin-top:20px;"></div>
+            <div class="available-pokemon" id="draftPool" style="overflow-y:auto; max-height:60vh; margin-top:32px;"></div>
+        </div>
+
+        <!-- Active Pokémon Selection Section -->
+        <div class="setup-section" id="activeSelectionSection" style="display:none;">
+            <h2>Choose Your Active Pokémon</h2>
+            <div id="activeSelectionTurn" style="margin-bottom:10px; font-weight:bold;"></div>
+            <div class="available-pokemon" id="activeTeamPool"></div>
+        </div>
+
+        <!-- Battle Phase Section -->
+        <div class="setup-section" id="battleSection" style="display:none; overflow-y:hidden; font-size:0.96em; padding:18px 8px 8px 8px;">
+            <h2 style="margin-bottom:16px; font-size:1.25em;">Battle Phase</h2>
+            <div id="battleTurnDisplay" style="margin-bottom:32px; font-weight:bold;"></div>
+            <div id="battleArena" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:18px;min-height:200px;"></div>
+            <div id="battleBoard"></div>
+            <div id="moveOptions"></div>
+            <div id="winnerOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(32,32,32,0.88);align-items:center;justify-content:center;flex-direction:column;cursor:pointer;">
+  <div id="winnerOverlayInner" style="text-align:center;">
+    <span id="winnerMessageText">Winner!</span>
+    <hr style="margin:32px 0 18px 0; border: none; border-top: 1.5px solid #bbb; width: 60%;">
+
+  </div>
+</div>
+<script>
+// Allow clicking anywhere on winner overlay to restart
+(function(){
+  document.addEventListener('DOMContentLoaded', function() {
+    var overlay = document.getElementById('winnerOverlay');
+    if (!overlay) return;
+    overlay.addEventListener('click', function(e) {
+      if (getComputedStyle(overlay).display !== 'none' && overlay.offsetParent !== null) {
+        location.reload();
+      }
+    });
+  });
+})();
+</script>
+            
+        </div>
+    </div>
+    <script>
+// Returns the correct image path for a given Pokémon name (lowercase)
+function getPokemonImage(nameLower) {
+    switch (nameLower) {
+        case 'shiny chansey': return 'pokemon-images/shiny-chansey.webp';
+        case 'shiny clefable': return 'pokemon-images/shiny-clefable.png';
+        case 'shiny onix': return 'pokemon-images/shiny-onix.png';
+        case 'blissey': return 'pokemon-images/blissey.jpg';
+        case 'happiny': return 'pokemon-images/happiny.png';
+        case 'jigglypuff': return 'pokemon-images/jigglypuff.webp';
+        case 'shiny ninetales': return 'pokemon-images/shiny-ninetales.webp';
+        case 'charizard': return 'pokemon-images/charizard.jpg';
+        case 'blastoise': return 'pokemon-images/blastoise.jpg';
+        case 'gyarados': return 'pokemon-images/gyarados.jpg';
+        case 'lucario': return 'pokemon-images/lucario.jpg';
+        case 'snorlax': return 'pokemon-images/snorlax.png';
+        case 'mewtwo': return 'pokemon-images/mewtwo.png';
+        case 'tyranitar': return 'pokemon-images/tyranitar.png';
+        case 'arcanine': return 'pokemon-images/arcanine.png';
+        case 'lapras': return 'pokemon-images/lapras.png';
+        case 'garchomp': return 'pokemon-images/garchomp.png';
+        case 'gardevoir': return 'pokemon-images/gardevoir.png';
+        case 'gengar': return 'pokemon-images/gengar.png';
+        case 'scizor': return 'pokemon-images/scizor.png';
+        case 'venusaur': return 'pokemon-images/venusaur.png';
+        case 'dragonite': return 'pokemon-images/dragonite.png';
+        case 'pikachu': return 'pokemon-images/pikachu.jpg';
+        case 'ekans': return 'pokemon-images/ekans.png';
+        case 'rapidash': return 'pokemon-images/rapidash.jpg';
+        case 'ponyta': return 'pokemon-images/ponyta.jpg';
+        default: return '';
+    }
+}
+
+// Returns the next available (non-fainted, not active) Pokémon index for a player, or null if none
+function getNextAvailablePokemon(playerIdx) {
+    for (let i = 0; i < playerTeams[playerIdx].length; i++) {
+        if (i !== playerActivePokemon[playerIdx] && playerHP[playerIdx][i] > 0) {
+            return i;
+        }
+    }
+    return null;
+}
+
+// --- GLOBAL GAME LOGIC ---
+// All functions that need to be called from HTML (onclick) must be attached to window
+
+// Pokemon class definition
+class Pokemon {
+    constructor(name, hp, moves) {
+        this.name = name;
+        this.maxHp = hp;
+        this.currentHp = hp;
+        this.moves = moves;
+        this.extraTurns = 0;
+        // Track remaining PP for each move (3 per move)
+        this.movePP = Array(moves.length).fill(3);
+    }
+}
+
+// --- GAME STATE ---
+let numPlayers = 0;
+let teamSize = 1;
+let playerTeams = [];
+let playerActivePokemon = [];
+let playerHP = [];
+let playerLevelUps = [];
+let playerExtraTurns = [];
+let battleOrder = [];
+let battleTurn = 0;
+let draftOrder = [];
+let draftTurn = 0;
+let battleLogArr = [];
+
+
+
+// --- UPDATE BATTLE UI ---
+window.updateBattleUI = function(gameOver) {
+    // Always bring winner overlay to front if game is over
+    // Overlay visibility is now fully controlled by CSS and .active class
+    // No manual style changes needed here
+
+    // Always bring winner overlay to front if game is over
+    // Overlay visibility is now fully controlled by CSS and .active class
+    // No manual style changes needed here
+    // (No forced display/zIndex)
+    // Show only the battle section, hide setup/selection
+    document.getElementById('battleSection').style.display = 'block';
+    if (document.getElementById('playerSelectionSection')) document.getElementById('playerSelectionSection').style.display = 'none';
+    if (document.getElementById('teamSizeSection')) document.getElementById('teamSizeSection').style.display = 'none';
+    if (document.getElementById('draftSection')) document.getElementById('draftSection').style.display = 'none';
+    if (document.getElementById('activeSelectionSection')) document.getElementById('activeSelectionSection').style.display = 'none';
+
+    let turnPlayer = battleOrder[battleTurn % battleOrder.length];
+    let gyaradosActive = false;
+    let html = '';
+    // Collect player divs
+    let playerDivs = [];
+    for (let i = 0; i < numPlayers; i++) {
+        let activeIdx = playerActivePokemon[i];
+        let poke = playerTeams[i][activeIdx];
+        if (poke && poke.name && poke.name.toLowerCase() === 'gyarados') {
+            gyaradosActive = true;
+        }
+        // Add 3D model or placeholder above info
+        let pokeImgHtml = '';
+        let imgFile = '';
+        if (poke && poke.name) {
+            let nameLower = poke.name.toLowerCase();
+            imgFile = getPokemonImage(nameLower);
+            if (nameLower === 'snorlax') imgFile = 'pokemon-images/snorlax.png';
+            else if (nameLower === 'mewtwo') imgFile = 'pokemon-images/mewtwo.png';
+            else if (nameLower === 'lucario') imgFile = 'pokemon-images/lucario.jpg';
+            else if (nameLower === 'gardevoir') imgFile = 'pokemon-images/gardevoir.png';
+            else if (nameLower === 'scizor') imgFile = 'pokemon-images/scizor.png';
+            else if (nameLower === 'tyranitar') imgFile = 'pokemon-images/tyranitar.png';
+            else if (nameLower === 'arcanine') imgFile = 'pokemon-images/arcanine.png';
+            else if (nameLower === 'lapras') imgFile = 'pokemon-images/lapras.png';
+            else if (nameLower === 'garchomp') imgFile = 'pokemon-images/garchomp.png';
+        }
+        pokeImgHtml = imgFile ? `<img src='${imgFile}' alt='${poke.name}' style='width:260px;height:260px;object-fit:contain;display:block;margin:auto;'>` : `<div style='width:100px;height:100px;margin:auto;font-size:48px;display:flex;align-items:center;justify-content:center;'>⚪️</div>`;
+        let playerHtml = `<div style='flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;height:100%;'>`;
+        playerHtml += `<b>Player ${i+1}:</b><br>${pokeImgHtml}${poke ? poke.name : ''}<br>HP: ${poke && playerHP[i][activeIdx] !== undefined ? Math.max(playerHP[i][activeIdx], 0) : ''} / ${poke ? poke.hp : ''}`;
+        // Show move options for all players
+        if (poke && poke.moves) {
+            if (i === turnPlayer && playerHP[i][activeIdx] > 0) {
+                playerHtml += `<div id='moveOptions' style='margin-top:10px;border:2px solid #4CAF50;background:#e8ffe8;border-radius:8px;padding:8px;'>`;
+                poke.moves.forEach((move, idx) => {
+                    let desc = '';
+                    if(move.type==='attack') desc = ` (${move.value} dmg)`;
+                    else if(move.type==='restore') desc = ` (+${move.value} HP)`;
+                    else if(move.type==='extraturn') desc = ` (+2 turns)`;
+                    else if(move.type==='levelup') desc = ` (+${move.value} atk)`;
+                    playerHtml += `<button onclick='chooseMove(${i},${idx})' style='margin-bottom:6px;'>${move.name}${desc}</button>`;
+                });
+                playerHtml += `<button onclick='swapPokemonUI(${i})' style='margin-top:6px;'>Swap Pokémon</button>`;
+                playerHtml += `</div>`;
+            } else {
+                playerHtml += `<div style='margin-top:10px;opacity:0.5;background:#eee;border-radius:8px;padding:8px;max-width:220px;margin:auto;display:flex;flex-direction:column;gap:10px;'>`;
+                poke.moves.forEach((move, idx) => {
+    let desc = '';
+    let type = move.type ? move.type.toLowerCase() : '';
+    if(type === 'attack') desc = ` (${move.value} dmg)`;
+    else if(type === 'restore') desc = ` (+${move.value} HP)`;
+    else if(type === 'extraturn') desc = ` (+${move.value} turns)`;
+    else if(type === 'levelup') desc = ` (+${move.value} atk)`;
+    // Use the Pokémon's own movePP array if available
+    let maxPP = (type === 'attack') ? 6 : 3;
+    let pp = (poke.movePP && poke.movePP[idx] !== undefined) ? poke.movePP[idx] : maxPP;
+    let ppSpan = `<span style='font-size:0.95em;color:#999;'>[${pp} left]</span>`;
+    playerHtml += `<button disabled style='margin-bottom:6px;'>${move.name}${desc} ${ppSpan}</button>`;
+});
+                // Show extra turns indicator if any
+                let turnsLeft = (typeof playerExtraTurns !== 'undefined' && playerExtraTurns[i] > 0) ? playerExtraTurns[i] : 0;
+                if (turnsLeft > 0) {
+                    playerHtml += `<div id='extraTurnsIndicator' style='margin-top:10px;'>Extra turns: <b>${turnsLeft}</b></div>`;
+                }
+                playerHtml += `</div>`;
+            }
+        }
+        // Show remaining Pokémon (not active, not fainted)
+        let remainingHtml = '<div style="margin-top:10px; display:flex; justify-content:center; gap:8px;">';
+        for (let j = 0; j < playerTeams[i].length; j++) {
+            if (j !== activeIdx && playerHP[i][j] > 0) {
+                let remPoke = playerTeams[i][j];
+                let remImg = '';
+                if (remPoke && remPoke.name) {
+                    let remNameLower = remPoke.name.toLowerCase();
+                    remImg = getPokemonImage(remNameLower);
+                }
+                remainingHtml += remImg ? `<img src='${remImg}' alt='${remPoke.name}' title='${remPoke.name}' style='width:48px;height:48px;object-fit:contain;border-radius:6px;border:1.5px solid #bbb;background:#fff;'>` : '';
+            }
+        }
+        remainingHtml += '</div>';
+        playerHtml += remainingHtml;
+        playerHtml += `</div>`;
+        playerDivs.push(playerHtml);
+    }
+    // Insert VS sign between player divs
+    if (playerDivs.length === 2) {
+        html = playerDivs[0] + `<div class='vs-sign'>VS</div>` + playerDivs[1];
+    } else {
+        html = playerDivs.join('');
+    }
+    document.getElementById('battleArena').innerHTML = html;
+    if (checkGameOver()) {
+        return; // Game is over, do not update UI further
+    }
+    document.getElementById('battleTurnDisplay').innerHTML = `Player ${turnPlayer+1}'s turn!`;
+    // Render move options for the current player (now inside their div)
+    if (playerHP[turnPlayer][playerActivePokemon[turnPlayer]] > 0) {
+        window.showMoveOptions(turnPlayer);
+    } else if (document.getElementById('moveOptions')) {
+        document.getElementById('moveOptions').innerHTML = '<div>No available moves. Your Pokémon has fainted!</div>';
+    }
+}
+
+// --- MAIN GAME LOGIC ---
+// POKEMON POOL
+const POKEMON_POOL = [
+    { name: 'Charizard', hp: 280, moves: [ { name: 'Flamethrower', type: 'attack', value: 80 }, { name: 'Dragon Dance', type: 'levelUp', value: 30 }, { name: 'Air Slash', type: 'attack', value: 75 }, { name: 'Fire Blast', type: 'attack', value: 110 } ] },
+    { name: 'Blastoise', hp: 270, moves: [ { name: 'Hydro Pump', type: 'attack', value: 75 }, { name: 'Ice Beam', type: 'attack', value: 90 }, { name: 'Shell Smash', type: 'levelUp', value: 40 }, { name: 'Surf', type: 'attack', value: 90 } ] },
+    { name: 'Venusaur', hp: 275, moves: [ { name: 'Solar Beam', type: 'attack', value: 70 }, { name: 'Synthesis', type: 'restore', value: 80 }, { name: 'Sludge Bomb', type: 'attack', value: 85 }, { name: 'Growth', type: 'levelUp', value: 35 } ] },
+    { name: 'Gyarados', hp: 290, moves: [ { name: 'Waterfall', type: 'attack', value: 80 }, { name: 'Dragon Dance', type: 'levelUp', value: 35 }, { name: 'Crunch', type: 'attack', value: 90 }, { name: 'Hurricane', type: 'attack', value: 110 } ] },
+    { name: 'Snorlax', hp: 350, moves: [ { name: 'Body Slam', type: 'attack', value: 85 }, { name: 'Rest', type: 'restore', value: 150 }, { name: 'Earthquake', type: 'attack', value: 100 }, { name: 'Curse', type: 'levelUp', value: 50 } ] },
+    { name: 'Mewtwo', hp: 300, moves: [ { name: 'Psychic', type: 'attack', value: 90 }, { name: 'Recover', type: 'restore', value: 100 }, { name: 'Shadow Ball', type: 'attack', value: 80 }, { name: 'Calm Mind', type: 'levelUp', value: 45 } ] },
+    { name: 'Dragonite', hp: 280, moves: [ { name: 'Dragon Rush', type: 'attack', value: 85 }, { name: 'Agility', type: 'extraturn', value: 2 }, { name: 'Thunder', type: 'attack', value: 110 }, { name: 'Roost', type: 'restore', value: 90 } ] },
+    { name: 'Gengar', hp: 260, moves: [ { name: 'Shadow Ball', type: 'attack', value: 80 }, { name: 'Hypnosis', type: 'extraturn', value: 2 }, { name: 'Sludge Wave', type: 'attack', value: 95 }, { name: 'Nasty Plot', type: 'levelup', value: 40 } ] },
+    { name: 'Tyranitar', hp: 300, moves: [ { name: 'Stone Edge', type: 'attack', value: 100 }, { name: 'Dragon Dance', type: 'levelUp', value: 35 }, { name: 'Crunch', type: 'attack', value: 80 }, { name: 'Earthquake', type: 'attack', value: 100 } ] },
+    { name: 'Arcanine', hp: 285, moves: [ { name: 'Flare Blitz', type: 'attack', value: 120 }, { name: 'Extreme Speed', type: 'extraturn', value: 2 }, { name: 'Wild Charge', type: 'attack', value: 90 }, { name: 'Morning Sun', type: 'restore', value: 70 } ] },
+    { name: 'Lapras', hp: 310, moves: [ { name: 'Ice Beam', type: 'attack', value: 90 }, { name: 'Surf', type: 'attack', value: 85 }, { name: 'Thunder', type: 'attack', value: 110 }, { name: 'Perish Song', type: 'extraturn', value: 2 } ] },
+    { name: 'Garchomp', hp: 295, moves: [ { name: 'Dragon Claw', type: 'attack', value: 85 }, { name: 'Earthquake', type: 'attack', value: 100 }, { name: 'Swords Dance', type: 'levelUp', value: 40 }, { name: 'Fire Fang', type: 'attack', value: 75 } ] },
+    { name: 'Lucario', hp: 265, moves: [ { name: 'Aura Sphere', type: 'attack', value: 95 }, { name: 'Close Combat', type: 'attack', value: 120 }, { name: 'Swords Dance', type: 'levelUp', value: 40 }, { name: 'Extreme Speed', type: 'extraturn', value: 2 } ] },
+    { name: 'Gardevoir', hp: 255, moves: [ { name: 'Moonblast', type: 'attack', value: 95 }, { name: 'Psychic', type: 'attack', value: 90 }, { name: 'Calm Mind', type: 'levelup', value: 40 }, { name: 'Recover', type: 'restore', value: 85 } ] },
+    { name: 'Scizor', hp: 270, moves: [ { name: 'Bullet Punch', type: 'attack', value: 70 }, { name: 'X-Scissor', type: 'attack', value: 85 }, { name: 'Iron Defense', type: 'restore', value: 80 }, { name: 'Swords Dance', type: 'levelUp', value: 45 } ] },
+    // --- New Pokémon ---
+    { name: 'Pikachu', hp: 180, moves: [
+        { name: 'Thunderbolt', type: 'attack', value: 90 },
+        { name: 'Quick Attack', type: 'attack', value: 40 },
+        { name: 'Double Team', type: 'extraturn', value: 2 },
+        { name: 'Electro Ball', type: 'attack', value: 80 }
+    ] },
+    { name: 'Ekans', hp: 160, moves: [
+        { name: 'Poison Sting', type: 'attack', value: 50 },
+        { name: 'Bite', type: 'attack', value: 60 },
+        { name: 'Glare', type: 'extraturn', value: 2 },
+        { name: 'Wrap', type: 'attack', value: 35 }
+    ] },
+    // --- Added Rapidash ---
+    { name: 'Rapidash', hp: 240, moves: [
+        { name: 'Flare Blitz', type: 'attack', value: 110 },
+        { name: 'Stomp', type: 'attack', value: 65 },
+        { name: 'Agility', type: 'extraturn', value: 2 },
+        { name: 'Morning Sun', type: 'restore', value: 70 }
+    ] },
+    // Added Ponyta
+    { name: 'Ponyta', hp: 180, moves: [
+        { name: 'Flame Wheel', type: 'attack', value: 60 },
+        { name: 'Stomp', type: 'attack', value: 45 },
+        { name: 'Tail Whip', type: 'levelup', value: 15 },
+        { name: 'Morning Sun', type: 'restore', value: 40 }
+    ] },
+    // Shiny Ninetales
+    { name: 'Shiny Ninetales', hp: 220, moves: [
+        { name: 'Dazzling Gleam', type: 'attack', value: 70 },
+        { name: 'Mystical Fire', type: 'attack', value: 60 },
+        { name: 'Nasty Plot', type: 'levelUp', value: 30 },
+        { name: 'Moonlight', type: 'restore', value: 50 }
+    ] },
+    // Shiny Onix
+    { name: 'Shiny Onix', hp: 250, moves: [
+        { name: 'Shiny Rock Throw', type: 'attack', value: 65 },
+        { name: 'Shiny Iron Defense', type: 'levelup', value: 30 },
+        { name: 'Shiny Slam', type: 'attack', value: 50 },
+        { name: 'Shiny Heal', type: 'restore', value: 40 }
+    ] },
+    // Blissey
+    { name: 'Blissey', hp: 300, moves: [
+        { name: 'Seismic Toss', type: 'attack', value: 50 },
+        { name: 'Soft-Boiled', type: 'restore', value: 120 },
+        { name: 'Light Screen', type: 'levelUp', value: 25 },
+        { name: 'Sing', type: 'extraTurn', value: 2 }
+    ] },
+    // Happiny
+    { name: 'Happiny', hp: 160, moves: [
+        { name: 'Pound', type: 'attack', value: 35 },
+        { name: 'Disarming Voice', type: 'attack', value: 30 },
+        { name: 'Rest', type: 'restore', value: 40 },
+        { name: 'Double Team', type: 'extraTurn', value: 2 }
+    ] },
+    // Jigglypuff
+    { name: 'Jigglypuff', hp: 160, moves: [
+        { name: 'Sing', type: 'extraTurn', value: 2 },
+        { name: 'Pound', type: 'attack', value: 35 },
+        { name: 'Disarming Voice', type: 'attack', value: 45 },
+        { name: 'Rest', type: 'restore', value: 60 }
+    ] },
+    // Shiny Clefable
+    { name: 'Shiny Clefable', hp: 210, moves: [
+        { name: 'Moonblast', type: 'attack', value: 80 },
+        { name: 'Cosmic Power', type: 'levelup', value: 35 },
+        { name: 'Metronome', type: 'extraTurn', value: 2 },
+        { name: 'Soft-Boiled', type: 'restore', value: 70 }
+    ] },
+    // Shiny Chansey
+    { name: 'Shiny Chansey', hp: 260, moves: [
+        { name: 'Egg Bomb', type: 'attack', value: 60 },
+        { name: 'Sing', type: 'extraTurn', value: 2 },
+        { name: 'Soft-Boiled', type: 'restore', value: 70 },
+        { name: 'Light Screen', type: 'levelup', value: 25 }
+    ] }
+];
+
+
+// --- DRAFT PHASE LOGIC ---
+let draftPool = [];
+window.startDraftPhase = function() {
+    draftPool = JSON.parse(JSON.stringify(POKEMON_POOL));
+    playerTeams = Array(numPlayers).fill(null).map(() => []);
+    draftOrder = Array.from({length: numPlayers}, (_, i) => i);
+    for (let i = draftOrder.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [draftOrder[i], draftOrder[j]] = [draftOrder[j], draftOrder[i]];
+    }
+    draftTurn = 0;
+    showSection('draft');
+    window.updateDraftUI();
+};
+
+window.updateDraftUI = function() {
+    let html = '';
+    draftPool.forEach((poke, idx) => {
+        // Count move types
+        let attackCount = poke.moves.filter(m => m.type === 'attack').length;
+        let levelUpCount = poke.moves.filter(m => m.type === 'levelUp').length;
+        let restoreCount = poke.moves.filter(m => m.type === 'restore' || m.type === 'heal').length;
+        let extraTurnCount = poke.moves.filter(m => m.type === 'extraTurn').length;
+        // Validation
+        let invalid = attackCount > 6 || levelUpCount > 3 || restoreCount > 3 || extraTurnCount > 3;
+        let reason = '';
+        if (attackCount > 6) reason = 'Too many attack moves (max 6)';
+        else if (levelUpCount > 3) reason = 'Too many level up moves (max 3)';
+        else if (restoreCount > 3) reason = 'Too many restore moves (max 3)';
+        else if (extraTurnCount > 3) reason = 'Too many extra turn moves (max 3)';
+        html += `<div class='pokemon-card available${invalid ? ' invalid-pokemon' : ''}' style='padding:10px;border-radius:8px;cursor:pointer;background:${invalid ? '#ffe6e6' : '#f6f6f6'};${invalid ? 'opacity:0.6;pointer-events:none;' : ''}' title='${invalid ? reason : ''}' ${invalid ? '' : `onclick='pickPokemon(${idx})'`} >`;
+        // Show 3D for Gyarados, placeholder for others
+        let imgFile = '';
+if (poke && poke.name) {
+    let nameLower = poke.name.toLowerCase();
+    imgFile = getPokemonImage(nameLower);
+}
+html += imgFile ? `<img src='${imgFile}' alt='${poke.name}' style='width:180px;height:180px;object-fit:contain;display:block;margin:auto;'>` : `<div style='width:120px;height:120px;margin:auto;font-size:64px;display:flex;align-items:center;justify-content:center;'>⚪️</div>`;
+        html += `<div style='font-weight:bold;'>${poke.name}</div>`;
+        html += `<div>HP: ${poke.hp}</div>`;
+        html += `<div>Moves: ${poke.moves.map(m=>{
+    if(m.type==='attack') return `${m.name} (${m.value} dmg)`;
+    if(m.type==='restore') return `${m.name} (+${m.value} HP)`;
+    if(m.type==='extraTurn') return `${m.name} (+${m.value} turns)`;
+    if(m.type==='levelUp') return `${m.name} (+${m.value} atk)`;
+    return m.name;
+}).join(', ')}</div>`;
+        if (invalid) html += `<div style='color:#d32f2f;font-weight:bold;margin-top:6px;'>${reason}</div>`;
+        html += `</div>`;
+    });
+    document.getElementById('draftPool').innerHTML = html || '<div>No Pokémon left to draft.</div>';
+    
+    document.getElementById('draftOrderDisplay').innerText = 'Draft Order: ' + draftOrder.map(i=>`Player ${i+1}`).join(', ');
+    document.getElementById('draftTurnDisplay').innerText = `Player ${draftOrder[draftTurn%numPlayers]+1}'s turn to pick!`;
+    document.getElementById('teamsDisplay').innerHTML = `<div style='display:flex;gap:32px;justify-content:center;'>` + playerTeams.map((team,i)=>`<div style='min-width:160px;'><b>Player ${i+1} Team:</b><br>${team.length ? team.map(p=>p.name).join(', ') : '<span style=\'color:#aaa;\'>No picks yet</span>'}</div>`).join('') + `</div>`;
+};
+
+window.pickPokemon = function(idx) {
+    let currentPlayer = draftOrder[draftTurn % numPlayers];
+    if (playerTeams[currentPlayer].length >= teamSize) {
+        alert('You have already filled your team!');
+        return;
+    }
+    let picked = draftPool.splice(idx,1)[0];
+    playerTeams[currentPlayer].push(picked);
+    draftTurn++;
+    let allFull = playerTeams.every(team => team.length === teamSize);
+    if (allFull) {
+        document.getElementById('draftSection').style.display = 'none';
+        
+        startActiveSelectionPhase();
+        return;
+    }
+    updateDraftUI();
+};
+
+window.startActiveSelectionPhase = function() {
+    activeSelectionTurn = 0;
+    playerActivePokemon = Array(numPlayers).fill(null);
+    document.getElementById('activeSelectionSection').style.display = 'block';
+    updateActiveSelectionUI();
+    updateBackBtnVisibility();
+};
+
+window.updateActiveSelectionUI = function() {
+    let playerIdx = draftOrder[activeSelectionTurn];
+    document.getElementById('activeSelectionTurn').textContent = `Player ${playerIdx+1}, choose your active Pokémon:`;
+    document.getElementById('activeTeamPool').innerHTML = playerTeams[playerIdx].map((p, idx) => {
+        let imgHtml = '';
+        let imgFile = '';
+if (p && p.name) {
+    let nameLower = p.name.toLowerCase();
+    imgFile = getPokemonImage(nameLower);
+}
+imgHtml = imgFile ? `<img src='${imgFile}' alt='${p.name}' style='width:180px;height:180px;object-fit:contain;display:block;margin:auto;'>` : `<div style='width:120px;height:120px;margin:auto;font-size:64px;display:flex;align-items:center;justify-content:center;'>⚪️</div>`;
+        return `<div class='pokemon-card' style='background:#f6f6f6;padding:10px;border-radius:8px;cursor:pointer;' onclick='selectActivePokemon(${playerIdx},${idx})'>${imgHtml}<div style='font-weight:bold;'>${p.name}</div><div>HP: ${p.hp}</div><div>Moves: ${p.moves.map(m=>{
+    if(m.type==='attack') return `${m.name} (${m.value} dmg)`;
+    if(m.type==='restore') return `${m.name} (+${m.value} HP)`;
+    if(m.type==='extraTurn') return `${m.name} (+${m.value} turns)`;
+    if(m.type==='levelUp') return `${m.name} (+${m.value} atk)`;
+    return m.name;
+}).join(', ')}</div></div>`;
+    }).join('');
+    
+    updateBackBtnVisibility();
+};
+
+window.selectActivePokemon = function(playerIdx, pokeIdx) {
+    if (playerActivePokemon[playerIdx] !== null) return;
+    playerActivePokemon[playerIdx] = pokeIdx;
+    activeSelectionTurn++;
+    if (activeSelectionTurn >= numPlayers) {
+        document.getElementById('activeSelectionSection').style.display = 'none';
+        
+        startBattlePhase();
+    } else {
+        updateActiveSelectionUI();
+    }
+};
+
+window.startBattlePhase = function() {
+    battleTurn = 0;
+    battleOrder = draftOrder.slice();
+    playerHP = playerTeams.map(team => team.map(p => p.hp));
+    playerLevelUps = playerTeams.map(team => team.map(_ => 0));
+    playerExtraTurns = Array(numPlayers).fill(0);
+    playerEliminated = Array(numPlayers).fill(false);
+    // Initialize movePP for all Pokémon (3 per move)
+    playerTeams.forEach(team => team.forEach(p => {
+        if (!p.movePP || p.movePP.length !== p.moves.length) {
+            p.movePP = p.moves.map(m => m.type === 'attack' ? 6 : 3);
+        }
+    }));
+    battleLogArr = [];
+    showSection('battle');
+    updateBattleUI();
+};
+
+window.showMoveOptions = function(playerIdx) {
+    // Only render move options if it's the player's turn and the Pokémon is their active Pokémon
+    if (!battleOrder || battleOrder[battleTurn] !== playerIdx || playerActivePokemon[playerIdx] === null) {
+        document.getElementById('moveOptions').innerHTML = '';
+        return;
+    }
+    // Only render move options for the active Pokémon
+    const activeIdx = playerActivePokemon[playerIdx];
+    if (typeof activeIdx !== 'number' || activeIdx < 0) {
+        document.getElementById('moveOptions').innerHTML = '';
+        return;
+    }
+    // Only render move options for the currently active Pokémon
+    if (arguments.length > 1 && arguments[1] !== activeIdx) {
+        document.getElementById('moveOptions').innerHTML = '';
+        return;
+    }
+
+    let poke = playerTeams[playerIdx][activeIdx];
+    let html = '<div><b>Choose a move:</b></div>';
+    poke.moves.forEach((move, idx) => {
+        let desc = '';
+        const type = move.type ? move.type.toLowerCase() : '';
+        if(type==='attack') {
+            let bonus = playerLevelUps[playerIdx][activeIdx] || 0;
+            desc = ` (${move.value} dmg` + (bonus > 0 ? ` +${bonus} bonus` : '') + ')';
+        } else if(type==='restore') desc = ` (+${move.value} HP)`;
+        else if(type==='extraturn') desc = ` (+${move.value} turns)`;
+        else if(type==='levelup') desc = ` (+${move.value} atk)`;
+        // Show remaining PP for this move
+        let pp = poke.movePP ? poke.movePP[idx] : 3;
+        let disabled = pp <= 0 ? 'disabled' : '';
+        html += `<button onclick='chooseMove(${playerIdx},${idx})' ${disabled}>${move.name}${desc} <span style='font-size:0.95em;color:#999;'>[${pp} left]</span></button><br>`;
+    });
+    // Only show swap button if ALL of the following:
+    // - This is the current player's turn
+    // - The Pokémon is the player's active Pokémon
+    // - A swap is possible (another non-fainted Pokémon)
+    const team = playerTeams[playerIdx];
+    // Only show swap if there is at least one other Pokémon (not self) AND that Pokémon is not fainted
+    const aliveOthers = team.reduce((acc, p, i) => (i !== activeIdx && p.hp > 0) ? acc + 1 : acc, 0);
+    // Only show swap if there is at least one other Pokémon (not self) AND that Pokémon is not fainted
+    let canSwap = false;
+    for (let i = 0; i < team.length; i++) {
+        if (i !== activeIdx && playerHP[playerIdx][i] > 0) {
+            canSwap = true;
+            break;
+        }
+    }
+    if (
+        canSwap &&
+        battleOrder &&
+        battleOrder[battleTurn] === playerIdx &&
+        playerActivePokemon[playerIdx] === activeIdx
+    ) {
+        html += `<button onclick='swapPokemonUI(${playerIdx})'>Swap Pokémon</button>`;
+    }
+
+    // --- NEW: Miss Turn logic ---
+    // If ALL moves have 0 PP left, show a Miss Turn button
+    const allNoPP = poke.movePP && poke.movePP.every(pp => pp <= 0);
+    if (allNoPP) {
+        html += `<button onclick='missTurn(${playerIdx})' style='background:#f44336;color:white;'>Miss Turn</button>`;
+    }
+    // Add extra turns indicator if any
+    let turnsLeft = (typeof currentExtraTurnsDisplay === 'number' && currentExtraTurnsDisplay > 0)
+        ? currentExtraTurnsDisplay
+        : playerExtraTurns[playerIdx];
+    if (turnsLeft > 0) {
+        html += `<div id='extraTurnsIndicator' style='margin-top:10px;font-size:1.1em;color:#2196F3;font-weight:bold;'>You have ${turnsLeft} extra turn${turnsLeft > 1 ? 's' : ''}!</div>`;
+    } else {
+        html += `<div id='extraTurnsIndicator' style='margin-top:10px;'></div>`;
+    }
+    currentExtraTurnsDisplay = null; // Reset after displaying
+    document.getElementById('moveOptions').innerHTML = `<div style='display:flex;flex-direction:column;gap:10px;max-width:220px;margin:auto;'>` + html + `</div>`;
+    updateBackBtnVisibility();
+};
+
+window.chooseMove = function(playerIdx, moveIdx) {
+    // If all moves are out of PP, disallow selection
+    let activeIdx = playerActivePokemon[playerIdx];
+    let poke = playerTeams[playerIdx][activeIdx];
+    if (poke.movePP && poke.movePP.every(pp => pp <= 0)) {
+        alert('No moves left! You must swap or miss your turn.');
+        return;
+    }
+    let move = poke.moves[moveIdx];
+    // Prevent move if no PP left
+    if (poke.movePP && poke.movePP[moveIdx] <= 0) {
+        alert('No PP left for this move!');
+        return;
+    }
+    // Normalize move type for case-insensitive checks
+    let type = move.type ? move.type.toLowerCase() : '';
+    if (type === 'attack') {
+        if (numPlayers > 2) {
+            chooseAttackTarget(playerIdx, moveIdx);
+        } else {
+            let opponentIdx = getNextOpponent(playerIdx);
+            useMove(playerIdx, moveIdx, opponentIdx);
+        }
+    } else if (type === 'restore') {
+        useMove(playerIdx, moveIdx, null);
+    } else if (type === 'levelup') {
+        useMove(playerIdx, moveIdx, null);
+    } else if (type === 'extraturn') {
+        useMove(playerIdx, moveIdx, null);
+    }
+};
+
+window.chooseAttackTarget = function(playerIdx, moveIdx) {
+    let html = '';
+    for (let i = 0; i < numPlayers; i++) {
+        if (i === playerIdx) continue;
+        let activeIdx = playerActivePokemon[i];
+        let poke = playerTeams[i][activeIdx];
+        if (playerHP[i][activeIdx] > 0) {
+            html += `<button onclick='useMove(${playerIdx},${moveIdx},${i})'>${poke.name}</button> `;
+        }
+    }
+    document.getElementById('moveOptions').innerHTML = html;
+    updateBackBtnVisibility();
+};
+
+// Miss Turn functionality
+window.missTurn = function(playerIdx) {
+    battleLogArr.push(`Player ${playerIdx+1} missed their turn (no moves left).`);
+    // Advance turn logic as normal
+    battleTurn = (battleTurn + 1) % battleOrder.length;
+    // Skip eliminated or out-of-Pokémon players
+    while (battleOrder.length > 0 && (playerEliminated[battleOrder[battleTurn]] || playerHP[battleOrder[battleTurn]][playerActivePokemon[battleOrder[battleTurn]]] === 0)) {
+        battleTurn = (battleTurn + 1) % battleOrder.length;
+    }
+    updateBattleUI();
+    updateBackBtnVisibility();
+};
+
+// Track extra turns for display
+let currentExtraTurnsDisplay = null;
+window.useMove = function(playerIdx, moveIdx, targetIdx) {
+    // Use already declared variables for activeIdx and poke
+    let activeIdx = playerActivePokemon[playerIdx];
+    let poke = playerTeams[playerIdx][activeIdx];
+    // Decrement movePP only if available
+    if (poke.movePP && typeof poke.movePP[moveIdx] === 'number' && poke.movePP[moveIdx] > 0) {
+        poke.movePP[moveIdx]--;
+    }
+
+    // --- SOUND: Helper to play a sound by file path ---
+    function playSound(path, moveName = '') {
+        if (!path) {
+            console.log('No sound path provided for move:', moveName);
+            return;
+        }
+        try {
+            console.log('Attempting to play sound for move:', moveName, 'at path:', path);
+            const audio = new Audio(path);
+            audio.volume = 0.7;
+            audio.play().catch(err => {
+                console.warn('Audio play() failed for', moveName, ':', err);
+            });
+        } catch (e) {
+            console.warn('Sound error:', e, 'for move:', moveName);
+        }
+    }
+    // --- END SOUND HELPER ---
+
+    let move = poke.moves[moveIdx];
+    // Play move sound for attacks
+    if (move && move.type === 'attack') {
+        let soundPath = (typeof SOUND_MAP !== 'undefined' && SOUND_MAP[move.name]) ? SOUND_MAP[move.name] : (typeof DEFAULT_ATTACK_SOUND !== 'undefined' ? DEFAULT_ATTACK_SOUND : null);
+        playSound(soundPath, move.name);
+    }
+    if (move.type === 'attack') {
+        // Make sure not to attack self
+        if (typeof targetIdx === 'undefined' || targetIdx === playerIdx) {
+            targetIdx = getNextOpponent(playerIdx);
+            if (targetIdx === playerIdx) return; // No valid opponents, do nothing
+        }
+        let targetActiveIdx = playerActivePokemon[targetIdx];
+        let targetPoke = playerTeams[targetIdx][targetActiveIdx];
+        let bonus = playerLevelUps[playerIdx][activeIdx] || 0;
+        let damage = move.value + bonus;
+        playerHP[targetIdx][targetActiveIdx] -= damage;
+        playerHP[targetIdx][targetActiveIdx] = Math.max(0, playerHP[targetIdx][targetActiveIdx]);
+        battleLogArr.push(`Player ${playerIdx+1}'s ${poke.name} used ${move.name} on Player ${targetIdx+1}'s ${targetPoke.name} for ${damage} damage!`);
+        if (playerHP[targetIdx][targetActiveIdx] === 0) {
+            // Play faint sound
+            if (typeof DEFAULT_FAINT_SOUND !== 'undefined') playSound(DEFAULT_FAINT_SOUND);
+            let nextAvailableIdx = getNextAvailablePokemon(targetIdx);
+            if (nextAvailableIdx !== null) {
+                playerActivePokemon[targetIdx] = nextAvailableIdx;
+                battleLogArr.push(`Player ${targetIdx+1}'s ${targetPoke.name} fainted! Swapping to ${playerTeams[targetIdx][nextAvailableIdx].name}.`);
+            } else {
+                battleLogArr.push(`Player ${targetIdx+1}'s ${targetPoke.name} fainted! No Pokémon left.`);
+                if (!playerEliminated[targetIdx]) {
+                    playerEliminated[targetIdx] = true;
+                    battleLogArr.push(`<b>Player ${targetIdx+1} has been eliminated!</b>`);
+                    // Remove from battleOrder
+                    let elimIdx = battleOrder.indexOf(targetIdx);
+                    if (elimIdx !== -1) battleOrder.splice(elimIdx, 1);
+                    // If the attacker eliminated themselves, skip their extra turn
+                    if (targetIdx === playerIdx && playerExtraTurns[playerIdx] > 0) {
+                        playerExtraTurns[playerIdx] = 0;
+                    }
+                    // If this was the last player, end the game immediately
+                    if (battleOrder.length === 1) {
+                        battleLogArr.push(`<b>Player ${battleOrder[0]+1} wins!</b>`);
+                        document.getElementById('moveOptions').innerHTML = '';
+                        document.getElementById('battleTurnDisplay').innerHTML = `<span style='color:lime;font-weight:bold;'>Player ${battleOrder[0]+1} wins!</span>`;
+                        updateBattleUI();
+                        return;
+                    }
+                    // If the eliminated player was the next in turn, advance turn
+                    if (battleTurn >= battleOrder.length) {
+                        battleTurn = battleTurn % battleOrder.length;
+                    }
+                }
+            }
+        }
+    } else if (move.type.toLowerCase() === 'restore') {
+        playerHP[playerIdx][activeIdx] += move.value;
+        battleLogArr.push(`Player ${playerIdx+1}'s ${poke.name} used ${move.name} and restored ${move.value} HP!`);
+        // Play heal sound
+        if (typeof DEFAULT_HEAL_SOUND !== 'undefined') playSound(DEFAULT_HEAL_SOUND);
+    } else if (move.type.toLowerCase() === 'levelup') {
+        playerLevelUps[playerIdx][activeIdx] += move.value;
+        battleLogArr.push(`Player ${playerIdx+1}'s ${poke.name} used ${move.name} and increased its attack by ${move.value}!`);
+        // Play level up sound if mapped
+        if (typeof SOUND_MAP !== 'undefined' && SOUND_MAP[move.name]) playSound(SOUND_MAP[move.name], move.name);
+        else if (typeof DEFAULT_ATTACK_SOUND !== 'undefined') playSound(DEFAULT_ATTACK_SOUND);
+    } else if (move.type.toLowerCase() === 'extraturn') {
+        playerExtraTurns[playerIdx] += move.value;
+        battleLogArr.push(`Player ${playerIdx+1}'s ${poke.name} used ${move.name} and gained ${move.value} extra turns!`);
+        // Play extra turn sound if mapped
+        if (typeof SOUND_MAP !== 'undefined' && SOUND_MAP[move.name]) playSound(SOUND_MAP[move.name], move.name);
+        else if (typeof DEFAULT_ATTACK_SOUND !== 'undefined') playSound(DEFAULT_ATTACK_SOUND);
+    }
+    // End game if only one player remains
+    if (battleOrder.length === 1) {
+        // Play victory sound
+        if (typeof DEFAULT_VICTORY_SOUND !== 'undefined') playSound(DEFAULT_VICTORY_SOUND);
+        battleLogArr.push(`<b>Player ${battleOrder[0]+1} wins!</b>`);
+        const overlay = document.getElementById('winnerOverlay');
+        if (overlay) {
+            // Force layout reflow before activating overlay for instant animation
+            void overlay.offsetHeight;
+            overlay.classList.add('active');
+            const msgSpan = overlay.querySelector('#winnerMessageText');
+            if(msgSpan) msgSpan.innerHTML = `🎉 Player ${battleOrder[0]+1} wins! 🎉`;
+            return; // Stop here so overlay is shown instantly, no further UI updates
+        } else {
+            console.warn('winnerOverlay element not found');
+        }
+    }
+    // Advance turn logic for extra turns
+    // Don't give extra turns to eliminated players
+    if (!playerEliminated[playerIdx] && playerExtraTurns[playerIdx] > 0) {
+        currentExtraTurnsDisplay = playerExtraTurns[playerIdx]; // Store before decrement for UI
+        playerExtraTurns[playerIdx]--;
+        // Do NOT advance battleTurn, let this player go again
+    } else {
+        battleTurn = (battleTurn + 1) % battleOrder.length;
+        // Skip eliminated or out-of-Pokémon players
+        while (battleOrder.length > 0 && (playerEliminated[battleOrder[battleTurn]] || playerHP[battleOrder[battleTurn]][playerActivePokemon[battleOrder[battleTurn]]] === 0)) {
+            battleTurn = (battleTurn + 1) % battleOrder.length;
+        }
+    }
+    updateBattleUI();
+    updateBackBtnVisibility();
+}
+
+function getNextOpponent(playerIdx) {
+    // Always return the next opponent in battleOrder who is not the current player
+    for (let i=1; i<=battleOrder.length; i++) {
+        let idx = (battleOrder.indexOf(playerIdx) + i) % battleOrder.length;
+        let opp = battleOrder[idx];
+        if (playerHP[opp].some(hp => hp > 0) && !playerEliminated[opp]) return opp;
+    }
+    return playerIdx;
+}
+
+function checkGameOver() {
+    let losers = playerHP.map(team => team.every(hp => hp === 0));
+    let activePlayers = losers.filter(lost => !lost).length;
+    const moveOptions = document.getElementById('moveOptions');
+    const turnDisplay = document.getElementById('battleTurnDisplay');
+    const battleLog = document.getElementById('battleLog');
+    const overlay = document.getElementById('winnerOverlay');
+    if (activePlayers === 1) {
+        let winner = losers.findIndex(lost => !lost);
+        if (moveOptions) moveOptions.innerHTML = '';
+        else console.warn('moveOptions element not found');
+        if (turnDisplay) turnDisplay.innerHTML = `<span style='color:lime;font-weight:bold;'>Player ${winner+1} wins!</span>`;
+        else console.warn('battleTurnDisplay element not found');
+        battleLogArr.push(`<b>Player ${winner+1} wins the game!</b>`);
+        if (battleLog) battleLog.innerHTML = battleLogArr.slice(-8).join('<br>');
+        else console.warn('battleLog element not found');
+        // Show winner overlay in the center
+        if (overlay) {
+            void overlay.offsetHeight;
+            overlay.classList.add('active');
+            const msgSpan = overlay.querySelector('#winnerMessageText');
+            if(msgSpan) msgSpan.innerHTML = `🎉 Player ${winner+1} wins! 🎉`;
+            console.log('Winner overlay shown');
+            return true;
+        } else {
+            console.warn('winnerOverlay element not found');
+        }
+        return true;
+    }
+    if (activePlayers === 0) {
+        // All players fainted (draw)
+        if (moveOptions) moveOptions.innerHTML = '';
+        if (turnDisplay) turnDisplay.innerHTML = `<span style='color:red;font-weight:bold;'>No winner. All Pokémon fainted!</span>`;
+        battleLogArr.push(`<b>No winner! All Pokémon have fainted.</b>`);
+        if (battleLog) battleLog.innerHTML = battleLogArr.slice(-8).join('<br>');
+        if (overlay) {
+            void overlay.offsetHeight;
+            overlay.classList.add('active');
+            const msgSpan = overlay.querySelector('#winnerMessageText');
+            if(msgSpan) msgSpan.innerHTML = `No winner. All Pokémon fainted!`;
+            return true;
+        }
+        return true;
+    }
+    return false;
+}
+
+window.selectPlayers = function(n) {
+    numPlayers = n;
+    isVsComputer = (n === 1);
+    showSection('teamSize');
+};
+
+window.selectTeamSize = function(n) {
+    teamSize = n;
+    showSection('draft');
+    startDraftPhase();
+};
+
+</script>
+
+<audio id="themeMusic" src="start-theme.mp3" preload="auto" loop></audio>
+<script>
+// Music play/pause logic for both screens
+function setMusicBtnState(btn, music) {
+    btn.textContent = music.paused ? 'Play Theme Music' : 'Pause Music';
+}
+function setupMusicBtn(btnId) {
+    const btn = document.getElementById(btnId);
+    const music = document.getElementById('themeMusic');
+    if (!btn || !music) return;
+    btn.onclick = function() {
+        if (music.paused) {
+            music.volume = 0.7;
+            music.play();
+        } else {
+            music.pause();
+        }
+        setMusicBtnState(btn, music);
+    };
+    // Keep button state in sync if user switches screens
+    setMusicBtnState(btn, music);
+    music.addEventListener('play', () => setMusicBtnState(btn, music));
+    music.addEventListener('pause', () => setMusicBtnState(btn, music));
+}
+document.addEventListener('DOMContentLoaded', function() {
+    setupMusicBtn('musicBtn1');
+    setupMusicBtn('musicBtn2');
+});
+</script>
+<audio id="themeMusic" src="start-theme.mp3" preload="auto" loop></audio>
+<script>
+// Play theme music on first user interaction anywhere
+window.addEventListener('DOMContentLoaded', function() {
+    const music = document.getElementById('themeMusic');
+    if (!music) return;
+    music.volume = 0.7;
+    function tryPlay() {
+        music.play().catch(()=>{});
+        window.removeEventListener('click', tryPlay);
+        window.removeEventListener('keydown', tryPlay);
+    }
+    window.addEventListener('click', tryPlay);
+    window.addEventListener('keydown', tryPlay);
+});
+</script>
+<script src="swapPokemon.js"></script>
+</body>
+</html>

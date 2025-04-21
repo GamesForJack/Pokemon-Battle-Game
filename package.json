@@ -1,0 +1,11 @@
+{
+  "name": "pokemon-scene",
+  "version": "1.0.0",
+  "description": "A basic Pokemon scene using Three.js",
+  "scripts": {
+    "start": "http-server -p 8000"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

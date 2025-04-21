@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Battle Game</title>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .setup-section {
+            text-align: center;
+            padding: 40px;
+        }
+        .team-size-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .team-size-options button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .team-size-options button:hover {
+            background: #45a049;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-phase {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .draft-section {
+            margin-top: 20px;
+        }
+        .available-pokemon {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .teams-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .player-section {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .draft-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .current-player-info {
+            text-align: center;
+            padding: 8px;
+            background-color: #1565C0;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .current-player-info h3 {
+            margin: 0;
+            font-size: 1.2em;
+            display: inline-block;
+        }
+
+        .current-player-info p {
+            margin: 0 0 0 10px;
+            font-size: 1em;
+            display: inline-block;
+        }
+
+        .available-pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .pokemon-card {
+            border: 1px solid #2196F3;
+            padding: 15px;
+            margin: 0;
+            border-radius: 8px;
+            background-color: #E3F2FD;
+            color: #1565C0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pokemon-card strong {
+            font-size: 1.2em;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .pokemon-card.active {
+            border: 2px solid #4CAF50;
+            background-color: #E8F5E9;
+            color: #2E7D32;
+            box-shadow: 0 4px 8px rgba(76,175,80,0.3);
+        }
+
+        .pokemon-card.fainted {
+            opacity: 0.7;
+            background-color: #FFEBEE;
+            border-color: #EF5350;
+            color: #C62828;
+        }
+
+        .move-button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .move-button:hover:not(:disabled) {
+            background-color: #1976D2;
+            transform: translateY(-1px);
+        }
+
+        .move-button:disabled {
+            background-color: #B0BEC5;
+            cursor: not-allowed;
+        }
+
+        .moves-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+       }
+        .pokemon-card:hover {
+            background: #555;
+        }
+        .pokemon-card.available {
+            border-color: #4CAF50;
+        }
+        .pokemon-card.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .moves-list {
+            margin-top: 8px;
+        }
+        .move-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            margin: 2px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .move-type {
+            background: #666;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .current-turn {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .moves-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .move-button {
+            background: #4CAF50;
+            border: none;
+            padding: 10px;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .move-button:hover {
+            background: #45a049;
+        }
+        .move-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 20px;
+            background: #666;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .hp-bar-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        .battle-log {
+            grid-column: 1 / -1;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            height: 150px;
+            overflow-y: auto;
+        }
+        .moves-list {
+            margin-top: 8px;
+        }
+        .move-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            margin: 2px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .move-type {
+            background: #666;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        .move-value {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+    <script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+  import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+
+  window.showGyarados3D = function(show, parentId = 'gyarados-3d-viewer') {
+    const container = document.getElementById(parentId);
+    if (!container) return;
+    if (!show) {
+      container.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+    container.style.display = 'block';
+    container.innerHTML = '';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(300, 300);
+    container.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 1, 2);
+        scene.add(light);
+
+        const loader = new GLTFLoader();
+        loader.load('models/gyarados.glb', function(gltf) {
+          scene.add(gltf.scene);
+          camera.position.z = 5;
+          animate();
+        });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          scene.rotation.y += 0.01;
+          renderer.render(scene, camera);
+        }
+      };
+
+      document.addEventListener('DOMContentLoaded', function() {
+        window.showGyarados3D(true);
+        let teamSizeSection = document.getElementById('teamSizeSection');
+        if (teamSizeSection) teamSizeSection.style.display = 'none';
+        let setupSection = document.getElementById('setupSection');
+        if (setupSection) setupSection.style.display = 'none';
+      });
+    </script>
+</head>
+<body>
+    <div id="gyarados-3d-viewer" style="width:300px;height:300px; display:block; margin:auto;"></div>
+    <div class="container" id="mainContainer">
+        <div class="game-phase" id="gamePhase">Setup Phase</div>
+        <!-- Player Selection Screen -->
+        <div class="setup-section" id="playerSelectionSection" style="display:block;">
+            <h2>Select Number of Players</h2>
+            <div class="team-size-options">
+                <button onclick="selectPlayers(1)">1 Player</button>
+                <button onclick="selectPlayers(2)">2 Players</button>
+                <button onclick="selectPlayers(3)">3 Players</button>
+                <button onclick="selectPlayers(4)">4 Players</button>
+            </div>
+            <div style="margin-top:12px; color:#aaa; font-size:14px;">If 1 player is selected, you'll play against the computer.</div>
+        </div>
+        
+        <!-- Team Size Selection Screen -->
+        <div class="setup-section" id="teamSizeSection" style="display:none;">
+            <h2>Select Number of Pokémon Per Team</h2>
+            <div class="team-size-options">
+                <button onclick="selectTeamSize(1)">1</button>
+                <button onclick="selectTeamSize(2)">2</button>
+                <button onclick="selectTeamSize(3)">3</button>
+                <button onclick="selectTeamSize(4)">4</button>
+                <button onclick="selectTeamSize(5)">5</button>
+                <button onclick="selectTeamSize(6)">6</button>
+            </div>
+        </div>
+
+        <!-- Draft Section -->
+        <div class="setup-section" id="draftSection" style="display:none;">
+            <h2>Pokémon Draft</h2>
+            <div id="draftOrderDisplay" style="margin-bottom:10px;"></div>
+            <div id="draftTurnDisplay" style="margin-bottom:10px; font-weight:bold;"></div>
+            <div class="available-pokemon" id="draftPool"></div>
+            <div id="teamsDisplay" style="margin-top:20px;"></div>
+        </div>
+
+        <!-- Active Pokémon Selection Section -->
+        <div class="setup-section" id="activeSelectionSection" style="display:none;">
+            <h2>Choose Your Active Pokémon</h2>
+            <div id="activeSelectionTurn" style="margin-bottom:10px; font-weight:bold;"></div>
+            <div class="available-pokemon" id="activeTeamPool"></div>
+        </div>
+
+        <!-- Battle Phase Section -->
+        <div class="setup-section" id="battleSection" style="display:none;">
+            <h2>Battle Phase</h2>
+            <div id="battleTurnDisplay" style="margin-bottom:10px; font-weight:bold;"></div>
+            
+<div id="battleArena" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:32px;"></div>
+            <div id="battleBoard"></div>
+            <div id="moveOptions"></div>
+            <div id="battleLog" style="background:#222; color:#eee; padding:10px; margin-top:15px; border-radius:8px; min-height:60px; max-height:120px; overflow-y:auto;"></div>
+        </div>
+    </div>
+    <script>
+        // Pokemon class definition
+        class Pokemon {
+            constructor(name, hp, moves) {
+                this.name = name;
+                this.maxHp = hp;
+                this.currentHp = hp;
+                this.moves = moves;
+                this.extraTurns = 0;
+            }
+        }
+
+        // Pokemon pool
+        const POKEMON_POOL = [
+            {
+                name: 'Charizard',
+                hp: 280,
+                moves: [
+                    { name: 'Flamethrower', type: 'attack', value: 80 },
+                    { name: 'Dragon Dance', type: 'levelup', value: 30 },
+                    { name: 'Air Slash', type: 'attack', value: 75 },
+                    { name: 'Fire Blast', type: 'attack', value: 110 }
+                ]
+            },
+            {
+                name: 'Blastoise',
+                hp: 270,
+                moves: [
+                    { name: 'Hydro Pump', type: 'attack', value: 75 },
+                    { name: 'Withdraw', type: 'restore', value: 60 },
+                    { name: 'Ice Beam', type: 'attack', value: 90 },
+                    { name: 'Shell Smash', type: 'levelup', value: 40 }
+                ]
+            },
+            {
+                name: 'Venusaur',
+                hp: 275,
+                moves: [
+                    { name: 'Solar Beam', type: 'attack', value: 70 },
+                    { name: 'Synthesis', type: 'restore', value: 80 },
+                    { name: 'Sludge Bomb', type: 'attack', value: 85 },
+                    { name: 'Growth', type: 'levelup', value: 35 }
+                ]
+            },
+            {
+                name: 'Mewtwo',
+                hp: 300,
+                moves: [
+                    { name: 'Psychic', type: 'attack', value: 90 },
+                    { name: 'Recover', type: 'restore', value: 100 },
+                    { name: 'Shadow Ball', type: 'attack', value: 80 },
+                    { name: 'Calm Mind', type: 'levelup', value: 45 }
+                ]
+            },
+            {
+                name: 'Dragonite',
+                hp: 280,
+                moves: [
+                    { name: 'Dragon Rush', type: 'attack', value: 85 },
+                    { name: 'Agility', type: 'extraturn', value: 1 },
+                    { name: 'Thunder', type: 'attack', value: 110 },
+                    { name: 'Roost', type: 'restore', value: 90 }
+                ]
+            },
+            {
+                name: 'Gengar',
+                hp: 260,
+                moves: [
+                    { name: 'Shadow Ball', type: 'attack', value: 80 },
+                    { name: 'Hypnosis', type: 'extraturn', value: 1 },
+                    { name: 'Sludge Wave', type: 'attack', value: 95 },
+                    { name: 'Nasty Plot', type: 'levelup', value: 40 }
+                ]
+            },
+            {
+                name: 'Snorlax',
+                hp: 350,
+                moves: [
+                    { name: 'Body Slam', type: 'attack', value: 85 },
+                    { name: 'Rest', type: 'restore', value: 150 },
+                    { name: 'Earthquake', type: 'attack', value: 100 },
+                    { name: 'Curse', type: 'levelup', value: 50 }
+                ]
+            },
+            {
+                name: 'Gyarados',
+                hp: 290,
+                moves: [
+                    { name: 'Waterfall', type: 'attack', value: 80 },
+                    { name: 'Dragon Dance', type: 'levelup', value: 35 },
+                    { name: 'Crunch', type: 'attack', value: 90 },
+                    { name: 'Hurricane', type: 'attack', value: 110 }
+                ]
+            },
+            {
+                name: 'Alakazam',
+                hp: 250,
+                moves: [
+                    { name: 'Psychic', type: 'attack', value: 90 },
+                    { name: 'Recover', type: 'restore', value: 80 },
+                    { name: 'Focus Blast', type: 'attack', value: 120 },
+                    { name: 'Calm Mind', type: 'levelup', value: 40 }
+                ]
+            },
+            {
+                name: 'Tyranitar',
+                hp: 300,
+                moves: [
+                    { name: 'Stone Edge', type: 'attack', value: 100 },
+                    { name: 'Dragon Dance', type: 'levelup', value: 35 },
+                    { name: 'Crunch', type: 'attack', value: 80 },
+                    { name: 'Earthquake', type: 'attack', value: 100 }
+                ]
+            },
+            {
+                name: 'Arcanine',
+                hp: 285,
+                moves: [
+                    { name: 'Flare Blitz', type: 'attack', value: 120 },
+                    { name: 'Extreme Speed', type: 'extraturn', value: 1 },
+                    { name: 'Wild Charge', type: 'attack', value: 90 },
+                    { name: 'Morning Sun', type: 'restore', value: 70 }
+                ]
+            },
+            {
+                name: 'Lapras',
+                hp: 310,
+                moves: [
+                    { name: 'Ice Beam', type: 'attack', value: 90 },
+                    { name: 'Surf', type: 'attack', value: 85 },
+                    { name: 'Thunder', type: 'attack', value: 110 },
+                    { name: 'Sing', type: 'extraturn', value: 1 }
+                ]
+            },
+            {
+                name: 'Machamp',
+                hp: 290,
+                moves: [
+                    { name: 'Dynamic Punch', type: 'attack', value: 100 },
+                    { name: 'Cross Chop', type: 'attack', value: 90 },
+                    { name: 'Bulk Up', type: 'levelup', value: 40 },
+                    { name: 'Rock Slide', type: 'attack', value: 75 }
+                ]
+            },
+            {
+                name: 'Scizor',
+                hp: 270,
+                moves: [
+                    { name: 'Bullet Punch', type: 'attack', value: 70 },
+                    { name: 'X-Scissor', type: 'attack', value: 85 },
+                    { name: 'Iron Defense', type: 'restore', value: 80 },
+                    { name: 'Swords Dance', type: 'levelup', value: 45 }
+                ]
+            },
+            {
+                name: 'Garchomp',
+                hp: 295,
+                moves: [
+                    { name: 'Dragon Claw', type: 'attack', value: 85 },
+                    { name: 'Earthquake', type: 'attack', value: 100 },
+                    { name: 'Swords Dance', type: 'levelup', value: 40 },
+                    { name: 'Fire Fang', type: 'attack', value: 75 }
+                ]
+            },
+            {
+                name: 'Lucario',
+                hp: 265,
+                moves: [
+                    { name: 'Aura Sphere', type: 'attack', value: 95 },
+                    { name: 'Close Combat', type: 'attack', value: 120 },
+                    { name: 'Swords Dance', type: 'levelup', value: 40 },
+                    { name: 'Extreme Speed', type: 'extraturn', value: 1 }
+                ]
+            },
+            {
+                name: 'Gardevoir',
+                hp: 255,
+                moves: [
+                    { name: 'Moonblast', type: 'attack', value: 95 },
+                    { name: 'Psychic', type: 'attack', value: 90 },
+                    { name: 'Calm Mind', type: 'levelup', value: 40 },
+                    { name: 'Recover', type: 'restore', value: 85 }
+                ]
+            }
+        ];
+    </script>
+</body>
+</html>
+                moveIdx = attackMoves.reduce((best, m) => m.value > moves[best].value ? m.idx : best, attackMoves[0].idx);
+            }
+            useMove(compIdx, moveIdx);
+        }
+        function checkGameOver() {
+            let losers = playerHP.map(team => team.every(hp => hp === 0));
+            if (losers.some(lost => lost)) {
+                let winner = losers.findIndex(lost => !lost);
+                document.getElementById('moveOptions').innerHTML = '';
+                document.getElementById('battleTurnDisplay').innerHTML = `<span style='color:lime;font-weight:bold;'>Player ${winner+1} wins!</span>`;
+                battleLogArr.push(`<b>Player ${winner+1} wins the game!</b>`);
+                document.getElementById('battleLog').innerHTML = battleLogArr.slice(-8).join('<br>');
+                return true;
+            }
+            return false;
+        }
+
+        // Hide team size section and setup section initially
+        document.addEventListener('DOMContentLoaded', function() {
+            let teamSizeSection = document.getElementById('teamSizeSection');
+            if (teamSizeSection) teamSizeSection.style.display = 'none';
+            let setupSection = document.getElementById('setupSection');
+        });
+    } else {
+        // Next player's turn
+        battleTurn++;
+    }
+    updateBattleUI();
+}
+window.useMove = useMove;
+function swapPokemonUI(playerIdx) {
+    // Show swap options for player's team (excluding current active and fainted)
+    let html = `<div><b>Choose Pokémon to swap in:</b></div>`;
+    let options = playerTeams[playerIdx].map((p, idx) => {
+        let isActive = idx === playerActivePokemon[playerIdx];
+        let isFainted = playerHP[playerIdx][idx] === 0;
+        if (isActive || isFainted) return '';
+        return `<button onclick='swapPokemon(${playerIdx},${idx})'>${p.name}</button> `;
+    }).join('');
+    html += options || '<div>No available Pokémon to swap in.</div>';
+    document.getElementById('moveOptions').innerHTML = html;
+}
+window.swapPokemonUI = swapPokemonUI;
+function swapPokemon(playerIdx, newIdx) {
+    playerActivePokemon[playerIdx] = newIdx;
+    battleLogArr.push(`Player ${playerIdx+1} swapped in ${playerTeams[playerIdx][newIdx].name}. (Misses a turn!)`);
+    // Miss a turn
+    battleTurn++;
+    updateBattleUI();
+}
+window.swapPokemon = swapPokemon;
+function getNextOpponent(playerIdx) {
+    // Simple: next player in battleOrder who is not self and has alive Pokémon
+    for (let i=1; i<numPlayers; i++) {
+        let idx = (battleTurn + i) % numPlayers;
+        let opp = battleOrder[idx];
+        if (playerHP[opp].some(hp => hp > 0)) return opp;
+    }
+    return playerIdx; // fallback
+}
+// --- COMPUTER AI HELPERS ---
+function computerBattleMove() {
+    let compIdx = 1;
+    // If fainted, swap to next alive
+    if (playerHP[compIdx][playerActivePokemon[compIdx]] === 0) {
+        let nextIdx = playerHP[compIdx].findIndex(hp => hp > 0);
+        if (nextIdx !== -1 && nextIdx !== playerActivePokemon[compIdx]) {
+            swapPokemon(compIdx, nextIdx);
+            return;
+        }
+    }
+    // Otherwise, pick best move (prefer attack, else first)
+    let activeIdx = playerActivePokemon[compIdx];
+    let poke = playerTeams[compIdx][activeIdx];
+    let moves = poke.moves;
+    // Prefer attack move with highest value
+    let attackMoves = moves.map((m, i) => ({...m, idx: i})).filter(m => m.type === 'attack');
+    let moveIdx = 0;
+    if (attackMoves.length > 0) {
+        moveIdx = attackMoves.reduce((best, m) => m.value > moves[best].value ? m.idx : best, attackMoves[0].idx);
+    }
+    useMove(compIdx, moveIdx);
+}
+function checkGameOver() {
+    let losers = playerHP.map(team => team.every(hp => hp === 0));
+    if (losers.some(lost => lost)) {
+        let winner = losers.findIndex(lost => !lost);
+        document.getElementById('moveOptions').innerHTML = '';
+        document.getElementById('battleTurnDisplay').innerHTML = `<span style='color:lime;font-weight:bold;'>Player ${winner+1} wins!</span>`;
+        battleLogArr.push(`<b>Player ${winner+1} wins the game!</b>`);
+        document.getElementById('battleLog').innerHTML = battleLogArr.slice(-8).join('<br>');
+        return true;
+    }
+    return false;
+}
+
+// Hide team size section and setup section initially
+// Also show Gyarados 3D model after DOM is loaded
+
+
+</script>
+<script>
+// --- PLAYER SELECTION LOGIC ---
+let numPlayers = null;
+let isVsComputer = false;
+let teamSize = null;
+
+window.selectPlayers = function(n) {
+    numPlayers = n;
+    isVsComputer = (n === 1);
+    document.getElementById('playerSelectionSection').style.display = 'none';
+    document.getElementById('teamSizeSection').style.display = 'block';
+};
+
+window.selectTeamSize = function(n) {
+    teamSize = n;
+    document.getElementById('teamSizeSection').style.display = 'none';
+    startDraftPhase();
+};
+
+// --- DRAFT PHASE LOGIC ---
+let draftOrder = [];
+let draftTurn = 0;
+let playerTeams = [];
+let draftPool = [];
+function startDraftPhase() {
+    draftPool = JSON.parse(JSON.stringify(POKEMON_POOL));
+    playerTeams = Array(numPlayers).fill(null).map(() => []);
+    draftOrder = Array.from({length: numPlayers}, (_, i) => i);
+    for (let i = draftOrder.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [draftOrder[i], draftOrder[j]] = [draftOrder[j], draftOrder[i]];
+    }
+    draftTurn = 0;
+    document.getElementById('gamePhase').textContent = 'Draft Pokémon';
+    document.getElementById('draftSection').style.display = 'block';
+    updateDraftUI();
+    if (isVsComputer && draftOrder[0] === 1) {
+        setTimeout(computerDraftPick, 600);
+    }
+}
+function updateDraftUI() {
+    let orderHtml = 'Draft Order: ' + draftOrder.map(i => `Player ${i+1}`).join(' → ');
+    document.getElementById('draftOrderDisplay').innerHTML = orderHtml;
+    let currentPlayer = draftOrder[draftTurn % numPlayers];
+    document.getElementById('draftTurnDisplay').innerHTML = `Player ${currentPlayer+1}'s turn to pick!`;
+    document.getElementById('draftPool').innerHTML = draftPool.map((p, idx) =>
+        `<div class='pokemon-card' style='background:#222;padding:10px;border-radius:8px;cursor:pointer;' onclick='pickPokemon(${idx})'>
+            <div style='font-weight:bold;'>${p.name}</div>
+            <div>HP: ${p.hp}</div>
+            <div>Moves: ${p.moves.map(m=>m.name).join(', ')}</div>
+        </div>`
+    ).join('');
+    let teamsHtml = '';
+    for (let i=0; i<numPlayers; i++) {
+        teamsHtml += `<div style='margin-bottom:10px;'><b>Player ${i+1} Team:</b> ${playerTeams[i].map(p=>p.name).join(', ')}</div>`;
+    }
+    document.getElementById('teamsDisplay').innerHTML = teamsHtml;
+}
+function pickPokemon(idx) {
+    let currentPlayer = draftOrder[draftTurn % numPlayers];
+    if (playerTeams[currentPlayer].length >= teamSize) {
+        alert('You have already filled your team!');
+        return;
+    }
+    let picked = draftPool.splice(idx,1)[0];
+    playerTeams[currentPlayer].push(picked);
+    draftTurn++;
+    let allFull = playerTeams.every(team => team.length === teamSize);
+    if (allFull) {
+        document.getElementById('draftSection').style.display = 'none';
+        document.getElementById('gamePhase').textContent = 'Active Pokémon Selection';
+        startActiveSelectionPhase();
+        return;
+    }
+    updateDraftUI();
+    let nextPlayer = draftOrder[draftTurn % numPlayers];
+    if (isVsComputer && nextPlayer === 1 && !allFull) {
+        setTimeout(computerDraftPick, 600);
+    }
+}
+window.pickPokemon = pickPokemon;
+function computerDraftPick() {
+    let idx = 0;
+    let maxHP = -1;
+    for (let i = 0; i < draftPool.length; i++) {
+        if (draftPool[i].hp > maxHP) {
+            maxHP = draftPool[i].hp;
+            idx = i;
+        }
+    }
+    pickPokemon(idx);
+}
+
+// --- ACTIVE POKÉMON SELECTION PHASE ---
+let activeSelectionTurn = 0;
+let playerActivePokemon = [];
+function startActiveSelectionPhase() {
+    activeSelectionTurn = 0;
+    playerActivePokemon = Array(numPlayers).fill(null);
+    document.getElementById('activeSelectionSection').style.display = 'block';
+    updateActiveSelectionUI();
+    if (isVsComputer && draftOrder[0] === 1) {
+        setTimeout(computerActiveSelect, 700);
+    }
+}
+function updateActiveSelectionUI() {
+    let playerIdx = draftOrder[activeSelectionTurn];
+    document.getElementById('activeSelectionTurn').textContent = `Player ${playerIdx+1}, choose your active Pokémon:`;
+    document.getElementById('activeTeamPool').innerHTML = playerTeams[playerIdx].map((p, idx) =>
+        `<div class='pokemon-card' style='background:#222;padding:10px;border-radius:8px;cursor:pointer;' onclick='selectActivePokemon(${playerIdx},${idx})'>
+            <div style='font-weight:bold;'>${p.name}</div>
+            <div>HP: ${p.hp}</div>
+            <div>Moves: ${p.moves.map(m=>m.name).join(', ')}</div>
+        </div>`
+    ).join('');
+}
+function selectActivePokemon(playerIdx, pokeIdx) {
+    if (playerActivePokemon[playerIdx] !== null) return;
+    playerActivePokemon[playerIdx] = pokeIdx;
+    activeSelectionTurn++;
+    if (activeSelectionTurn >= numPlayers) {
+        document.getElementById('activeSelectionSection').style.display = 'none';
+        document.getElementById('gamePhase').textContent = 'Battle Phase';
+        startBattlePhase();
+    } else {
+        updateActiveSelectionUI();
+        let nextPlayer = draftOrder[activeSelectionTurn];
+        if (isVsComputer && nextPlayer === 1) {
+            setTimeout(computerActiveSelect, 700);
+        }
+    }
+}
+window.selectActivePokemon = selectActivePokemon;
+function computerActiveSelect() {
+    let compIdx = 1;
+    let idx = playerTeams[compIdx].findIndex((p, i) => playerActivePokemon[compIdx] === null && playerTeams[compIdx][i]);
+    if (idx === -1) idx = 0;
+    selectActivePokemon(compIdx, idx);
+}
+
+// --- BATTLE PHASE LOGIC ---
+let battleTurn = 0;
+let battleOrder = [];
+let playerHP = [];
+let playerLevelUps = [];
+let playerExtraTurns = [];
+let battleLogArr = [];
+function startBattlePhase() {
+    battleTurn = 0;
+    battleOrder = draftOrder.slice();
+    playerHP = playerTeams.map(team => team.map(p => p.hp));
+    playerLevelUps = playerTeams.map(team => team.map(_ => 0));
+    playerExtraTurns = Array(numPlayers).fill(0);
+    battleLogArr = [];
+    updateBattleUI();
+}
+function updateBattleUI() {
+    let turnPlayer = battleOrder[battleTurn % numPlayers];
+    let html = '';
+    let gyaradosActive = false;
+    for (let i = 0; i < numPlayers; i++) {
+        let activeIdx = playerActivePokemon[i];
+        let poke = playerTeams[i][activeIdx];
+        if (poke && poke.name && poke.name.toLowerCase() === 'gyarados') {
+            gyaradosActive = true;
+        }
+        html += `<div style='flex:1;text-align:center;'><b>Player ${i+1}:</b><br>${poke ? poke.name : ''}<br>HP: ${poke && playerHP[i][activeIdx] !== undefined ? playerHP[i][activeIdx] : ''} / ${poke ? poke.hp : ''}</div>`;
+    }
+    document.getElementById('battleArena').innerHTML = html;
+    document.getElementById('battleTurnDisplay').innerHTML = `Player ${turnPlayer+1}'s turn!`;
+    document.getElementById('battleBoard').innerHTML = '';
+    showMoveOptions(turnPlayer);
+    document.getElementById('battleLog').innerHTML = battleLogArr.slice(-8).join('<br>');
+    // Show or hide 3D Gyarados
+    if (window.showGyarados3D) {
+        window.showGyarados3D(gyaradosActive);
+    }
+}
+function showMoveOptions(playerIdx) {
+    let poke = playerTeams[playerIdx][playerActivePokemon[playerIdx]];
+    let html = '<div><b>Choose a move:</b></div>';
+    poke.moves.forEach((move, idx) => {
+        html += `<button onclick='useMove(${playerIdx},${idx})'>${move.name}</button> `;
+    });
+    html += `<button onclick='swapPokemonUI(${playerIdx})'>Swap Pokémon</button>`;
+    document.getElementById('moveOptions').innerHTML = html;
+}
+function useMove(playerIdx, moveIdx) {
+    let poke = playerTeams[playerIdx][playerActivePokemon[playerIdx]];
+    let move = poke.moves[moveIdx];
+    let logMsg = `<b>Player ${playerIdx+1}'s ${poke.name} used ${move.name}!</b>`;
+    let opponentIdx = getNextOpponent(playerIdx);
+    if (move.type === 'attack') {
+        let bonus = playerLevelUps[playerIdx][playerActivePokemon[playerIdx]] || 0;
+        let dmg = move.value + bonus;
+        let oppActive = playerActivePokemon[opponentIdx];
+        playerHP[opponentIdx][oppActive] -= dmg;
+        if (playerHP[opponentIdx][oppActive] < 0) playerHP[opponentIdx][oppActive] = 0;
+        logMsg += ` It dealt ${dmg} damage!`;
+        if (playerHP[opponentIdx][oppActive] === 0) {
+            logMsg += ` ${playerTeams[opponentIdx][oppActive].name} fainted!`;
+            let aliveIdx = playerHP[opponentIdx].findIndex((hp, idx) => hp > 0 && idx !== oppActive);
+            if (aliveIdx !== -1) {
+                playerActivePokemon[opponentIdx] = aliveIdx;
+                logMsg += ` Player ${opponentIdx+1} sends out ${playerTeams[opponentIdx][aliveIdx].name}!`;
+            }
+        }
+    } else if (move.type === 'levelup') {
+        playerLevelUps[playerIdx][playerActivePokemon[playerIdx]] += move.value;
+        logMsg += ` ${poke.name}'s attack increased by ${move.value}!`;
+    } else if (move.type === 'restore') {
+        playerHP[playerIdx][playerActivePokemon[playerIdx]] += move.value;
+        if (playerHP[playerIdx][playerActivePokemon[playerIdx]] > poke.hp) playerHP[playerIdx][playerActivePokemon[playerIdx]] = poke.hp;
+        logMsg += ` ${poke.name} restored ${move.value} HP!`;
+    } else if (move.type === 'extraturn') {
+        playerExtraTurns[playerIdx] += move.value;
+        logMsg += ` ${poke.name} gets ${move.value} extra turn(s)!`;
+    }
+    battleLogArr.push(logMsg);
+    if (checkGameOver()) return;
+    if (playerExtraTurns[playerIdx] > 0) {
+        playerExtraTurns[playerIdx]--;
+    } else {
+        battleTurn++;
+    }
+    updateBattleUI();
+}
+window.useMove = useMove;
+function swapPokemonUI(playerIdx) {
+    let html = `<div><b>Choose Pokémon to swap in:</b></div>`;
+    let options = playerTeams[playerIdx].map((p, idx) => {
+        let isActive = idx === playerActivePokemon[playerIdx];
+        let isFainted = playerHP[playerIdx][idx] === 0;
+        if (isActive || isFainted) return '';
+        return `<button onclick='swapPokemon(${playerIdx},${idx})'>${p.name}</button> `;
+    }).join('');
+    html += options || '<div>No available Pokémon to swap in.</div>';
+    document.getElementById('moveOptions').innerHTML = html;
+}
+window.swapPokemonUI = swapPokemonUI;
+function swapPokemon(playerIdx, newIdx) {
+    playerActivePokemon[playerIdx] = newIdx;
+    battleLogArr.push(`Player ${playerIdx+1} swapped in ${playerTeams[playerIdx][newIdx].name}. (Misses a turn!)`);
+    battleTurn++;
+    updateBattleUI();
+}
+window.swapPokemon = swapPokemon;
+function getNextOpponent(playerIdx) {
+    for (let i=1; i<numPlayers; i++) {
+        let idx = (battleTurn + i) % numPlayers;
+        let opp = battleOrder[idx];
+        if (playerHP[opp].some(hp => hp > 0)) return opp;
+    }
+    return playerIdx;
+}
+function computerBattleMove() {
+    let compIdx = 1;
+    if (playerHP[compIdx][playerActivePokemon[compIdx]] === 0) {
+        let nextIdx = playerHP[compIdx].findIndex(hp => hp > 0);
+        if (nextIdx !== -1 && nextIdx !== playerActivePokemon[compIdx]) {
+            swapPokemon(compIdx, nextIdx);
+            return;
+        }
+    }
+    let activeIdx = playerActivePokemon[compIdx];
+    let poke = playerTeams[compIdx][activeIdx];
+    let moves = poke.moves;
+    let attackMoves = moves.map((m, i) => ({...m, idx: i})).filter(m => m.type === 'attack');
+    let moveIdx = 0;
+    if (attackMoves.length > 0) {
+        moveIdx = attackMoves.reduce((best, m) => m.value > moves[best].value ? m.idx : best, attackMoves[0].idx);
+    }
+    useMove(compIdx, moveIdx);
+}
+function checkGameOver() {
+    let losers = playerHP.map(team => team.every(hp => hp === 0));
+    if (losers.some(lost => lost)) {
+        let winner = losers.findIndex(lost => !lost);
+        document.getElementById('moveOptions').innerHTML = '';
+        document.getElementById('battleTurnDisplay').innerHTML = `<span style='color:lime;font-weight:bold;'>Player ${winner+1} wins!</span>`;
+        battleLogArr.push(`<b>Player ${winner+1} wins the game!</b>`);
+        document.getElementById('battleLog').innerHTML = battleLogArr.slice(-8).join('<br>');
+        return true;
+    }
+    return false;
+}
+</script>
+</body>
+</html>
